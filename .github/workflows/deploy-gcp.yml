@@ -1,0 +1,177 @@
+name: Build and Deploy to GCP
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      skip_packer:
+        description: 'Skip Packer image build (use existing image)'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - main
+
+jobs:
+  build-deploy:
+    name: Maven → Packer → Terraform
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+    
+    steps:
+    # ===== MAVEN BUILD =====
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ☕ Set up JDK 11
+      uses: actions/setup-java@v4
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: 'maven'
+        
+    - name: 🔨 Maven Build
+      run: |
+        echo "========================================="
+        echo "Step 1/3: Building with Maven"
+        echo "========================================="
+        mvn clean package
+        ls -lh target/random-names.war
+      
+    - name: 📦 Upload WAR artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: webapp-war-${{ github.sha }}
+        path: target/random-names.war
+        retention-days: 7
+    
+    # ===== GCP AUTHENTICATION =====
+    - name: 🔐 Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+        
+    - name: ☁️ Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v2
+      
+    # ===== PACKER BUILD =====
+    - name: 📦 Setup Packer
+      if: ${{ !inputs.skip_packer }}
+      uses: hashicorp/setup-packer@v3
+      with:
+        version: 'latest'
+        
+    - name: 🔧 Packer Init
+      if: ${{ !inputs.skip_packer }}
+      working-directory: ./packer
+      run: packer init image.pkr.hcl
+      
+    - name: ✅ Packer Validate
+      if: ${{ !inputs.skip_packer }}
+      working-directory: ./packer
+      run: |
+        packer validate \
+          -var "project_id=${{ secrets.GCP_PROJECT_ID }}" \
+          -var "zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          image.pkr.hcl
+          
+    - name: 🏗️ Packer Build
+      if: ${{ !inputs.skip_packer }}
+      working-directory: ./packer
+      run: |
+        echo "========================================="
+        echo "Step 2/3: Building Packer Image"
+        echo "========================================="
+        packer build \
+          -var "project_id=${{ secrets.GCP_PROJECT_ID }}" \
+          -var "zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          image.pkr.hcl
+    
+    - name: ⏭️ Skip Packer Build
+      if: ${{ inputs.skip_packer }}
+      run: |
+        echo "========================================="
+        echo "Skipping Packer image build - using existing image"
+        echo "========================================="
+          
+    # ===== TERRAFORM DEPLOY =====
+    - name: 🏗️ Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: 'latest'
+        terraform_wrapper: false
+        
+    - name: 🔧 Terraform Init
+      working-directory: ./terraform
+      run: terraform init
+      
+    - name: ✅ Terraform Validate
+      working-directory: ./terraform
+      run: terraform validate
+      
+    - name: 📋 Terraform Plan
+      working-directory: ./terraform
+      run: |
+        echo "========================================="
+        echo "Step 3/3: Planning Terraform Deployment"
+        echo "========================================="
+        terraform plan \
+          -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+          -var="region=${{ vars.GCP_REGION || 'us-central1' }}" \
+          -var="zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          -out=tfplan
+          
+    - name: 🚀 Terraform Apply
+      working-directory: ./terraform
+      run: |
+        echo "========================================="
+        echo "Applying Terraform Configuration"
+        echo "========================================="
+        terraform apply -auto-approve tfplan
+      
+    - name: 📊 Deployment Summary
+      working-directory: ./terraform
+      run: |
+        echo "========================================="
+        echo "🎉 Deployment Completed Successfully!"
+        echo "========================================="
+        echo ""
+        terraform output
+        echo ""
+        APP_URL=$(terraform output -raw webapp_url 2>/dev/null || echo "Not available")
+        EXTERNAL_IP=$(terraform output -raw instance_external_ip 2>/dev/null || echo "Not available")
+        echo "🌐 Application URL: $APP_URL"
+        echo "📍 External IP: $EXTERNAL_IP"
+        echo "APP_URL=$APP_URL" >> $GITHUB_ENV
+        echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+        
+    - name: 💬 Create deployment summary
+      run: |
+        cat >> $GITHUB_STEP_SUMMARY <<EOF
+        # 🚀 Deployment Complete
+        
+        ## 📦 Build Information
+        - **Commit**: \`${{ github.sha }}\`
+        - **Branch**: \`${{ github.ref_name }}\`
+        - **Environment**: ${{ inputs.environment || 'production' }}
+        
+        ## 🌐 Access Information
+        - **Application URL**: ${{ env.APP_URL }}
+        - **External IP**: ${{ env.EXTERNAL_IP }}
+        
+        ## ✅ Deployment Steps
+        1. ✅ Maven build completed
+        2. ${{ inputs.skip_packer && '⏭️ Packer build skipped' || '✅ Packer image built' }}
+        3. ✅ Terraform deployed successfully
+        
+        ---
+        **Deployed at**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        EOF

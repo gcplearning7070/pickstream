@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Name Picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .name-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .name-display.loading {
+            opacity: 0.6;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .add-name-section {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+
+        .success {
+            color: #27ae60;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Random Name Picker</h1>
+        
+        <div id="nameDisplay" class="name-display">
+            Click the button to get a random name!
+        </div>
+        
+        <button id="getNameBtn" onclick="getRandomName()">Get Random Name</button>
+        
+        <div class="add-name-section">
+            <h2 style="color: #333; margin-bottom: 15px;">Add New Name</h2>
+            <div class="input-group">
+                <input type="text" id="nameInput" placeholder="Enter a name...">
+                <button onclick="addName()" style="padding: 12px 30px;">Add</button>
+            </div>
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script>
+        async function getRandomName() {
+            const nameDisplay = document.getElementById('nameDisplay');
+            const button = document.getElementById('getNameBtn');
+            
+            nameDisplay.classList.add('loading');
+            button.disabled = true;
+            nameDisplay.textContent = 'Loading...';
+            
+            try {
+                const response = await fetch('/random-names/api/random-name');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch name');
+                }
+                
+                const data = await response.json();
+                nameDisplay.textContent = data.name;
+            } catch (error) {
+                nameDisplay.textContent = 'Error loading name. Please try again.';
+                console.error('Error:', error);
+            } finally {
+                nameDisplay.classList.remove('loading');
+                button.disabled = false;
+            }
+        }
+
+        async function addName() {
+            const nameInput = document.getElementById('nameInput');
+            const message = document.getElementById('message');
+            const name = nameInput.value.trim();
+            
+            message.textContent = '';
+            
+            if (!name) {
+                message.textContent = 'Please enter a name';
+                message.className = 'error';
+                return;
+            }
+            
+            try {
+                const formData = new URLSearchParams();
+                formData.append('name', name);
+                
+                const response = await fetch('/random-names/api/random-name', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    message.textContent = 'Name added successfully!';
+                    message.className = 'success';
+                    nameInput.value = '';
+                } else {
+                    message.textContent = data.error || 'Failed to add name';
+                    message.className = 'error';
+                }
+            } catch (error) {
+                message.textContent = 'Error adding name. Please try again.';
+                message.className = 'error';
+                console.error('Error:', error);
+            }
+        }
+
+        // Allow Enter key to add name
+        document.getElementById('nameInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addName();
+            }
+        });
+    </script>
+</body>
+</html>
