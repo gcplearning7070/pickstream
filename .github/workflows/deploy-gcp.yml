@@ -79,8 +79,7 @@ jobs:
       working-directory: ./packer
       run: |
         packer validate \
-          -var "project_id=${{ secrets.GCP_PROJECT_ID }}" \
-          -var "zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          -var-file="variables.pkrvars.hcl" \
           image.pkr.hcl
           
     - name: 🏗️ Packer Build
@@ -91,8 +90,7 @@ jobs:
         echo "Step 2/3: Building Packer Image"
         echo "========================================="
         packer build \
-          -var "project_id=${{ secrets.GCP_PROJECT_ID }}" \
-          -var "zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          -var-file="variables.pkrvars.hcl" \
           image.pkr.hcl
     
     - name: ⏭️ Skip Packer Build
@@ -124,9 +122,7 @@ jobs:
         echo "Step 3/3: Planning Terraform Deployment"
         echo "========================================="
         terraform plan \
-          -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-          -var="region=${{ vars.GCP_REGION || 'us-central1' }}" \
-          -var="zone=${{ vars.GCP_ZONE || 'us-central1-a' }}" \
+          -var-file="terraform.tfvars" \
           -out=tfplan
           
     - name: 🚀 Terraform Apply
