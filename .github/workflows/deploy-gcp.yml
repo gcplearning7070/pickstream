@@ -109,12 +109,20 @@ jobs:
         
     - name: 🔧 Terraform Init
       working-directory: ./terraform
-      run: terraform init
+      run: terraform init -reconfigure
       
     - name: ✅ Terraform Validate
       working-directory: ./terraform
       run: terraform validate
       
+    - name: 🗑️ Terraform Destroy (existing resources)
+      working-directory: ./terraform
+      run: |
+        echo "========================================="
+        echo "Destroying existing resources..."
+        echo "========================================="
+        terraform destroy -var-file="terraform.tfvars" -auto-approve
+        
     - name: 📋 Terraform Plan
       working-directory: ./terraform
       run: |
@@ -124,20 +132,6 @@ jobs:
         terraform plan \
           -var-file="terraform.tfvars" \
           -out=tfplan
-          
-    - name: 🗑️ Terraform Destroy (if exists)
-      working-directory: ./terraform
-      run: |
-        echo "Checking for existing resources..."
-        terraform destroy -var-file="terraform.tfvars" -auto-approve || echo "No resources to destroy"
-        
-    - name: 📋 Terraform Re-Plan (after destroy)
-      working-directory: ./terraform
-      run: |
-        echo "Re-planning after destroy..."
-        terraform plan \
-          -var-file="terraform.tfvars" \
-          -out=tfplan-fresh
         
     - name: 🚀 Terraform Apply
       working-directory: ./terraform
@@ -145,7 +139,7 @@ jobs:
         echo "========================================="
         echo "Applying Terraform Configuration"
         echo "========================================="
-        terraform apply -auto-approve tfplan-fresh
+        terraform apply -auto-approve tfplan
       
     - name: 📊 Deployment Summary
       working-directory: ./terraform
