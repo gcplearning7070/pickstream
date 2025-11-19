@@ -1,0 +1,5 @@
+project_id    = "your-gcp-project-id"
+region        = "us-central1"
+zone          = "us-central1-a"
+instance_name = "random-names-webapp-instance"
+machine_type  = "e2-medium"

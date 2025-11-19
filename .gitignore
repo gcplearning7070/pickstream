@@ -28,11 +28,11 @@ buildNumber.properties
 *.tfstate
 *.tfstate.*
 .terraform.lock.hcl
-terraform.tfvars
 
 # Packer
 packer_cache/
 *.box
+packer/variables.pkrvars.hcl
 
 # OS
 .DS_Store
