@@ -42,8 +42,14 @@ jobs:
         echo "========================================="
         mvn clean package
         ls -lh target/random-names.war
-      
+    
     # ===== CODE QUALITY =====
+    - name: ☕ Set up JDK 17 for SonarCloud
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        
     - name: 🔍 SonarCloud Scan
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -55,9 +61,7 @@ jobs:
           -Dsonar.projectKey=gcpt0801_random-names-webapp \
           -Dsonar.organization=gcpt0801 \
           -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONAR_TOKEN
-    
-    # ===== GCP AUTHENTICATION =====
+          -Dsonar.login=$SONAR_TOKEN    # ===== GCP AUTHENTICATION =====
     - name: 🔐 Authenticate to Google Cloud
       uses: google-github-actions/auth@v2
       with:
