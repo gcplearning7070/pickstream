@@ -81,6 +81,13 @@ build {
     ]
   }
 
+  # Configure JAVA_HOME for Tomcat
+  provisioner "shell" {
+    inline = [
+      "echo 'JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64' | sudo tee -a /etc/default/tomcat9"
+    ]
+  }
+
   # Create deployment directory
   provisioner "shell" {
     inline = [
