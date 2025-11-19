@@ -52,8 +52,8 @@ jobs:
         echo "Running SonarCloud Analysis"
         echo "========================================="
         mvn sonar:sonar \
-          -Dsonar.projectKey=gcpt0801_pickstream \
-          -Dsonar.organization=gcpt0801 \
+          -Dsonar.projectKey=gcplearning7070_pickstream \
+          -Dsonar.organization=gcplearning7070 \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONAR_TOKEN
           
