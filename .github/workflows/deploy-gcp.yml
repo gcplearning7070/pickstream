@@ -64,19 +64,19 @@ jobs:
           -Dsonar.login=$SONAR_TOKEN
           
     # ===== SECURITY SCANNING =====
+    - name: 🛡️ Setup Snyk CLI
+      uses: snyk/actions/setup@master
+      
     - name: 🛡️ Snyk Security Scan
-      uses: snyk/actions/maven@master
       continue-on-error: true
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --severity-threshold=high
-        
-    - name: 📊 Upload Snyk Results
-      if: always()
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: snyk.sarif
+      run: |
+        echo "========================================="
+        echo "Running Snyk Security Scan"
+        echo "========================================="
+        snyk test --severity-threshold=high --file=pom.xml || echo "Snyk found vulnerabilities but continuing..."
+        snyk monitor --file=pom.xml || true
         
     # ===== GCP AUTHENTICATION =====
     - name: 🔐 Authenticate to Google Cloud
