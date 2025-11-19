@@ -45,27 +45,28 @@ source "googlecompute" "webapp" {
 build {
   sources = ["source.googlecompute.webapp"]
 
-  # Update system packages
+  # Update system packages and fix repositories
   provisioner "shell" {
     inline = [
       "sudo apt-get update",
-      "sudo apt-get upgrade -y"
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+      "sudo apt-get install -y software-properties-common"
     ]
   }
 
-  # Install Java 17 (better support on Ubuntu 22.04)
+  # Install Java 17 JDK (headless version for server use)
   provisioner "shell" {
     inline = [
-      "sudo apt-get install -y openjdk-17-jdk",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-17-jdk-headless",
       "java -version",
-      "sudo update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java"
+      "javac -version"
     ]
   }
 
   # Install Maven
   provisioner "shell" {
     inline = [
-      "sudo apt-get install -y maven",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y maven",
       "mvn -version"
     ]
   }
@@ -73,8 +74,9 @@ build {
   # Install Tomcat 9
   provisioner "shell" {
     inline = [
-      "sudo apt-get install -y tomcat9 tomcat9-admin",
-      "sudo systemctl enable tomcat9"
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tomcat9 tomcat9-admin",
+      "sudo systemctl enable tomcat9",
+      "sudo systemctl stop tomcat9"
     ]
   }
 
