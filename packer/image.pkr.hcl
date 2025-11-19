@@ -84,14 +84,21 @@ build {
   # Create deployment directory
   provisioner "shell" {
     inline = [
+      "mkdir -p /tmp/webapp",
       "sudo mkdir -p /opt/webapp",
       "sudo chown -R tomcat:tomcat /opt/webapp"
     ]
   }
 
-  # Copy application files
+  # Copy pom.xml
   provisioner "file" {
-    source      = "."
+    source      = "pom.xml"
+    destination = "/tmp/webapp/pom.xml"
+  }
+
+  # Copy source files
+  provisioner "file" {
+    source      = "src"
     destination = "/tmp/webapp"
   }
 
