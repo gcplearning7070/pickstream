@@ -125,6 +125,12 @@ jobs:
           -var-file="terraform.tfvars" \
           -out=tfplan
           
+    - name: 🗑️ Terraform Destroy (if exists)
+      working-directory: ./terraform
+      run: |
+        echo "Checking for existing resources..."
+        terraform destroy -var-file="terraform.tfvars" -auto-approve || echo "No resources to destroy"
+        
     - name: 🚀 Terraform Apply
       working-directory: ./terraform
       run: |
