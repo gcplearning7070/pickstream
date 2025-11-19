@@ -1,308 +1,268 @@
-# Random Names Web Application
+# 🎲 PickStream
 
-A simple Java web application that randomly displays names from a configurable list. Built with Java Servlets and deployed on GCP using Packer and Terraform.
+A modern web application for random selection from custom lists. Built with Java 17, deployed on GCP using Infrastructure as Code with complete CI/CD pipeline.
 
-## 🚀 Features
+![Java](https://img.shields.io/badge/Java-17-orange?logo=java)
+![Maven](https://img.shields.io/badge/Maven-3.6.3-blue?logo=apachemaven)
+![Tomcat](https://img.shields.io/badge/Tomcat-9-yellow?logo=apachetomcat)
+![GCP](https://img.shields.io/badge/GCP-Compute%20Engine-blue?logo=googlecloud)
+![Terraform](https://img.shields.io/badge/Terraform-Latest-purple?logo=terraform)
+![Packer](https://img.shields.io/badge/Packer-Latest-blue?logo=packer)
 
-- **Random Name Display**: Click a button to display a random name from the list
-- **Add Names**: Dynamically add new names to the list via the web interface
-- **Modern UI**: Responsive design with gradient styling
-- **REST API**: JSON-based API for programmatic access
+## ✨ Features
+
+- 🎯 Random name selection from customizable lists
+- ➕ Add new names dynamically via REST API
+- 🎨 Modern gradient UI with responsive design
+- 🔒 RESTful JSON API backend
+- ☁️ Cloud-native deployment on GCP
+- 🚀 Full CI/CD with GitHub Actions
+- ✅ Unit testing with JUnit & Mockito
+- 📊 Code quality with SonarCloud
+- 🛡️ Security scanning with Snyk
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│                  GitHub Actions                      │
+│  Maven Build → SonarCloud → Snyk → Packer → Terraform│
+└─────────────────────────────────────────────────────┘
+                          ↓
+┌─────────────────────────────────────────────────────┐
+│              Google Cloud Platform                   │
+│  ┌──────────────┐    ┌──────────────┐              │
+│  │  Compute     │────│  VPC Network │              │
+│  │  Instance    │    │  & Firewall  │              │
+│  └──────────────┘    └──────────────┘              │
+│        ↓                                             │
+│  ┌──────────────┐    ┌──────────────┐              │
+│  │   Tomcat 9   │    │  Static IP   │              │
+│  │  + WAR File  │    │   Address    │              │
+│  └──────────────┘    └──────────────┘              │
+└─────────────────────────────────────────────────────┘
+```
+
+## 🛠️ Technology Stack
+
+### Backend
+- **Java**: 17 (LTS)
+- **Servlet API**: 4.0.1
+- **Gson**: 2.10.1 (JSON processing)
+- **Build Tool**: Apache Maven 3.6.3
+
+### Infrastructure
+- **Cloud Provider**: Google Cloud Platform
+- **VM OS**: Ubuntu 22.04 LTS
+- **Web Server**: Apache Tomcat 9.0.58
+- **IaC**: Terraform (latest)
+- **Image Builder**: Packer (latest)
+
+### CI/CD & Quality
+- **CI/CD**: GitHub Actions
+- **Code Quality**: SonarCloud
+- **Security**: Snyk
+- **Testing**: JUnit 4.13.2, Mockito 3.12.4
+- **State Management**: GCS Backend
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+### Local Development
+- Java 17 (JDK)
+- Apache Maven 3.6+
+- Git
 
-- **Java 11** or higher
-- **Maven 3.6+**
-- **Packer 1.8+**
-- **Terraform 1.0+**
-- **Google Cloud SDK** (gcloud CLI)
-- A **GCP Project** with billing enabled
+### Cloud Deployment
+- Google Cloud Platform account
+- GCP Project with billing enabled
+- Service Account with appropriate permissions
 
-## 🏗️ Project Structure
+### CI/CD Tools
+- GitHub account
+- SonarCloud account (https://sonarcloud.io)
+- Snyk account (https://snyk.io) - optional
 
-```
-Java-webapp/
-├── src/
-│   └── main/
-│       ├── java/
-│       │   └── com/example/webapp/
-│       │       └── RandomNameServlet.java
-│       └── webapp/
-│           ├── index.html
-│           └── WEB-INF/
-│               └── web.xml
-├── packer/
-│   ├── image.pkr.hcl
-│   └── variables.pkrvars.hcl.example
-├── terraform/
-│   ├── main.tf
-│   ├── variables.tf
-│   ├── compute.tf
-│   ├── outputs.tf
-│   └── terraform.tfvars.example
-├── scripts/
-│   ├── build.sh
-│   ├── deploy.sh
-│   └── build.ps1
-├── pom.xml
-└── README.md
+## 🚀 Quick Start
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/gcpt0801/pickstream.git
+cd pickstream
 ```
 
-## 🛠️ Local Development
+### 2. Local Development
 
-### Build the Application
-
+#### Build the Application
 ```bash
 mvn clean package
 ```
 
-The WAR file will be created at `target/random-names.war`
-
-### Run Locally with Tomcat
-
-1. Install Tomcat 9 locally
-2. Copy the WAR file to Tomcat's webapps directory
-3. Start Tomcat
-4. Access the application at: `http://localhost:8080/random-names`
-
-## 🔄 GitHub Actions CI/CD
-
-This project includes GitHub Actions workflows for automated building, testing, and deployment.
-
-### Workflows
-
-1. **Build and Test** (`.github/workflows/build.yml`)
-   - Triggers on push/PR to `main` or `develop` branches
-   - Builds the application with Maven
-   - Runs tests
-   - Uploads WAR artifact
-
-2. **Deploy to GCP** (`.github/workflows/deploy-gcp.yml`)
-   - Triggers on push to `main` or manual workflow dispatch
-   - Builds Packer image
-   - Deploys infrastructure with Terraform
-   - Outputs application URL
-
-3. **PR Checks** (`.github/workflows/pr-checks.yml`)
-   - Validates code, Terraform, and Packer configs
-   - Runs on all pull requests
-
-4. **Cleanup Old Images** (`.github/workflows/cleanup.yml`)
-   - Runs weekly (Sundays at 2 AM UTC)
-   - Keeps only the 3 most recent Packer images
-   - Can be triggered manually
-
-### GitHub Secrets Setup
-
-Configure these secrets in your GitHub repository (Settings → Secrets and variables → Actions):
-
-#### Required Secrets:
-- `GCP_SA_KEY`: GCP service account JSON key with permissions:
-  - Compute Admin
-  - Storage Admin
-  - Service Account User
-
+#### Run Tests
 ```bash
-# Create service account
-gcloud iam service-accounts create github-actions \
-    --display-name="GitHub Actions"
-
-# Grant permissions
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/compute.admin"
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/storage.admin"
-
-gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
-    --member="serviceAccount:github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
-    --role="roles/iam.serviceAccountUser"
-
-# Create and download key
-gcloud iam service-accounts keys create key.json \
-    --iam-account=github-actions@YOUR_PROJECT_ID.iam.gserviceaccount.com
-
-# Copy the contents of key.json to GCP_SA_KEY secret
+mvn test
 ```
 
-- `GCP_PROJECT_ID`: Your GCP project ID
-
-#### Optional Variables:
-- `GCP_REGION`: GCP region (default: `us-central1`)
-- `GCP_ZONE`: GCP zone (default: `us-central1-a`)
-
-### Manual Deployment
-
-To trigger a manual deployment:
-
-1. Go to Actions tab in GitHub
-2. Select "Deploy to GCP" workflow
-3. Click "Run workflow"
-4. Choose environment and branch
-5. Click "Run workflow"
-
-### Workflow Status Badges
-
-Add these to the top of your README:
-
-```markdown
-![Build](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/build.yml/badge.svg)
-![Deploy](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/deploy-gcp.yml/badge.svg)
-```
-
-## ☁️ GCP Deployment
-
-### Step 1: Configure GCP
-
+#### Run Locally (requires Tomcat)
 ```bash
-# Authenticate with GCP
-gcloud auth login
-gcloud auth application-default login
-
-# Set your project
-gcloud config set project YOUR_PROJECT_ID
-
-# Enable required APIs
-gcloud services enable compute.googleapis.com
-gcloud services enable cloudresourcemanager.googleapis.com
+# Deploy target/pickstream.war to your local Tomcat webapps/
+# Access at http://localhost:8080/pickstream
 ```
 
-### Step 2: Build Custom Image with Packer
+### 3. Cloud Deployment Setup
 
-```bash
-# Navigate to the packer directory
-cd packer
+#### A. Google Cloud Platform Setup
 
-# Copy and configure variables
-cp variables.pkrvars.hcl.example variables.pkrvars.hcl
-# Edit variables.pkrvars.hcl with your project_id
-
-# Initialize Packer
-packer init image.pkr.hcl
-
-# Build the image
-packer build -var-file="variables.pkrvars.hcl" image.pkr.hcl
-```
-
-This creates a custom GCP image with:
-- Ubuntu 22.04 LTS
-- Java 11
-- Maven
-- Tomcat 9
-- Your web application pre-deployed
-
-### Step 3: Deploy Infrastructure with Terraform
-
-```bash
-# Navigate to the terraform directory
-cd ../terraform
-
-# Copy and configure variables
-cp terraform.tfvars.example terraform.tfvars
-# Edit terraform.tfvars with your project_id and preferences
-
-# Initialize Terraform
-terraform init
-
-# Preview the changes
-terraform plan
-
-# Apply the configuration
-terraform apply
-```
-
-This creates:
-- VPC network
-- Firewall rules (SSH, HTTP, Tomcat)
-- Static external IP
-- Compute instance with your custom image
-
-### Step 4: Access Your Application
-
-After Terraform completes, it will output the application URL:
-
-```
-webapp_url = "http://XX.XX.XX.XX:8080/random-names"
-```
-
-Open this URL in your browser to access your application!
-
-## 🔧 Configuration
-
-### Modify Default Names
-
-Edit `src/main/java/com/example/webapp/RandomNameServlet.java` and update the `init()` method:
-
-```java
-@Override
-public void init() throws ServletException {
-    names.add("Your Name 1");
-    names.add("Your Name 2");
-    // Add more names...
-}
-```
-
-### Change Machine Type
-
-Edit `terraform/terraform.tfvars`:
-
-```hcl
-machine_type = "e2-small"  # or e2-medium, e2-standard-2, etc.
-```
-
-### Change Region/Zone
-
-Edit `terraform/terraform.tfvars`:
-
-```hcl
-region = "us-west1"
-zone   = "us-west1-a"
-```
-
-## 🔄 Update Application
-
-To deploy an updated version:
-
-1. Make your code changes
-2. Rebuild the Packer image:
+1. **Create GCP Project**
    ```bash
-   cd packer
-   packer build -var-file="variables.pkrvars.hcl" image.pkr.hcl
-   ```
-3. Recreate the instance:
-   ```bash
-   cd ../terraform
-   terraform taint google_compute_instance.webapp_instance
-   terraform apply
+   gcloud projects create YOUR_PROJECT_ID
+   gcloud config set project YOUR_PROJECT_ID
    ```
 
-## 📡 API Endpoints
+2. **Enable Required APIs**
+   ```bash
+   gcloud services enable compute.googleapis.com
+   gcloud services enable storage-api.googleapis.com
+   ```
 
-### Get Random Name
+3. **Create Service Account**
+   ```bash
+   gcloud iam service-accounts create pickstream-deployer \
+     --display-name="PickStream Deployer"
+   
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:pickstream-deployer@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/compute.admin"
+   
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:pickstream-deployer@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/iam.serviceAccountUser"
+   ```
+
+4. **Generate Service Account Key**
+   ```bash
+   gcloud iam service-accounts keys create key.json \
+     --iam-account=pickstream-deployer@YOUR_PROJECT_ID.iam.gserviceaccount.com
+   ```
+
+5. **Create GCS Bucket for Terraform State**
+   ```bash
+   gsutil mb -p YOUR_PROJECT_ID gs://YOUR-BUCKET-NAME
+   ```
+
+#### B. SonarCloud Setup
+
+1. **Sign Up**: https://sonarcloud.io
+2. **Connect GitHub**: Authorize SonarCloud to access your repository
+3. **Create Organization**: Use your GitHub username (e.g., `gcpt0801`)
+4. **Generate Token**: 
+   - Go to **Account → Security → Generate Token**
+   - Copy the token
+
+#### C. Snyk Setup (Optional)
+
+1. **Sign Up**: https://snyk.io
+2. **Connect GitHub**: Authorize Snyk
+3. **Get API Token**:
+   - Go to **Account Settings → General → API Token**
+   - Copy the token
+
+#### D. GitHub Secrets Configuration
+
+Add the following secrets in your GitHub repository:  
+**Settings → Secrets and variables → Actions → New repository secret**
+
+| Secret Name | Description | How to Get |
+|------------|-------------|------------|
+| `GCP_SA_KEY` | GCP Service Account JSON | Contents of `key.json` file |
+| `SONAR_TOKEN` | SonarCloud API Token | From SonarCloud Account → Security |
+| `SNYK_TOKEN` | Snyk API Token | From Snyk Account Settings (optional) |
+
+#### E. Update Configuration Files
+
+1. **Update `terraform/terraform.tfvars`**:
+   ```hcl
+   project_id    = "YOUR_PROJECT_ID"
+   region        = "us-central1"
+   zone          = "us-central1-a"
+   instance_name = "pickstream-instance"
+   machine_type  = "e2-medium"
+   ```
+
+2. **Update `terraform/backend.tf`**:
+   ```hcl
+   terraform {
+     backend "gcs" {
+       bucket = "YOUR-BUCKET-NAME"
+       prefix = "pickstream/terraform/state"
+     }
+   }
+   ```
+
+3. **Update `packer/variables.pkrvars.hcl`**:
+   ```hcl
+   project_id = "YOUR_PROJECT_ID"
+   zone       = "us-central1-a"
+   ```
+
+4. **Commit and Push Changes**:
+   ```bash
+   git add terraform/terraform.tfvars terraform/backend.tf packer/variables.pkrvars.hcl
+   git commit -m "Configure for deployment"
+   git push
+   ```
+
+### 4. Deploy to GCP
+
+1. **Go to GitHub Actions**: https://github.com/gcpt0801/pickstream/actions
+2. **Select**: "Build and Deploy to GCP"
+3. **Click**: "Run workflow"
+4. **Select**: Production environment
+5. **Run workflow**
+
+The pipeline will:
+- ✅ Build WAR file with Maven
+- ✅ Run unit tests
+- ✅ Analyze code with SonarCloud
+- ✅ Scan for vulnerabilities with Snyk
+- ✅ Create VM image with Packer
+- ✅ Deploy infrastructure with Terraform
+
+### 5. Access Your Application
+
+After successful deployment, the workflow will output:
 ```
-GET /random-names/api/random-name
+🌐 Application URL: http://EXTERNAL_IP:8080/pickstream
+📍 External IP: EXTERNAL_IP
 ```
 
-Response:
+## 🎮 Usage
+
+### Web Interface
+1. Open `http://EXTERNAL_IP:8080/pickstream` in browser
+2. Click **"Get Random Name"** to select a random name
+3. Enter a name and click **"Add Name"** to add to the list
+
+### REST API
+
+#### Get Random Name
+```bash
+curl http://EXTERNAL_IP:8080/pickstream/api/random-name
+```
+
+**Response**:
 ```json
 {
   "name": "Alice Johnson"
 }
 ```
 
-### Add New Name
-```
-POST /random-names/api/random-name
-Content-Type: application/x-www-form-urlencoded
-
-name=John+Doe
+#### Add New Name
+```bash
+curl -X POST http://EXTERNAL_IP:8080/pickstream/api/random-name \
+  -d "name=John Doe"
 ```
 
-Response:
+**Response**:
 ```json
 {
   "success": true,
@@ -310,64 +270,214 @@ Response:
 }
 ```
 
-## 🧹 Cleanup
+## 🔧 Development
 
-To destroy all GCP resources:
-
-```bash
-cd terraform
-terraform destroy
+### Project Structure
+```
+pickstream/
+├── src/
+│   ├── main/
+│   │   ├── java/com/example/webapp/
+│   │   │   └── RandomNameServlet.java      # Backend servlet
+│   │   └── webapp/
+│   │       └── index.html                   # Frontend UI
+│   └── test/
+│       └── java/com/example/webapp/
+│           └── RandomNameServletTest.java   # Unit tests
+├── packer/
+│   ├── image.pkr.hcl                        # Packer configuration
+│   └── variables.pkrvars.hcl                # Packer variables
+├── terraform/
+│   ├── backend.tf                           # Terraform backend
+│   ├── compute.tf                           # GCP resources
+│   ├── outputs.tf                           # Output values
+│   ├── variables.tf                         # Variable definitions
+│   └── terraform.tfvars                     # Variable values
+├── .github/workflows/
+│   ├── deploy-gcp.yml                       # Main deployment pipeline
+│   ├── build.yml                            # Build & test only
+│   ├── destroy.yml                          # Infrastructure cleanup
+│   ├── pr-checks.yml                        # PR validation
+│   └── cleanup.yml                          # Image cleanup
+└── pom.xml                                  # Maven configuration
 ```
 
-To delete the custom image:
-
+### Running Tests Locally
 ```bash
-gcloud compute images list --filter="family:random-names-webapp"
-gcloud compute images delete IMAGE_NAME
+# Run all tests
+mvn test
+
+# Run specific test class
+mvn test -Dtest=RandomNameServletTest
+
+# Run with coverage
+mvn clean test jacoco:report
 ```
 
-## 💰 Cost Estimation
+### Code Quality Checks
+```bash
+# Run SonarCloud analysis locally (requires SONAR_TOKEN)
+mvn sonar:sonar \
+  -Dsonar.projectKey=gcpt0801_pickstream \
+  -Dsonar.organization=gcpt0801 \
+  -Dsonar.host.url=https://sonarcloud.io \
+  -Dsonar.login=$SONAR_TOKEN
+```
 
-Approximate monthly costs (us-central1):
-- **e2-medium instance**: ~$24/month
-- **20GB Standard persistent disk**: ~$0.80/month
-- **Static IP**: ~$7/month (when instance is running)
-- **Egress traffic**: Variable based on usage
+### Building Locally
+```bash
+# Clean build
+mvn clean package
 
-**Total**: ~$32/month
+# Skip tests
+mvn clean package -DskipTests
 
-## 🔒 Security Considerations
+# Build with specific profile
+mvn clean package -P production
+```
 
-For production deployments, consider:
+## 🔄 CI/CD Workflows
 
-1. **Restrict SSH access**: Limit source IPs in firewall rules
-2. **Use HTTPS**: Set up Cloud Load Balancer with SSL certificate
-3. **Enable Cloud Armor**: Protect against DDoS attacks
-4. **Use Secret Manager**: Store sensitive configuration
-5. **Regular updates**: Keep OS and Java packages updated
-6. **Monitoring**: Enable Cloud Monitoring and Logging
+### 1. Build and Deploy to GCP
+**Trigger**: Manual (workflow_dispatch)  
+**Purpose**: Complete deployment pipeline
 
-## 📝 Troubleshooting
+**Stages**:
+1. Maven Build & Test
+2. SonarCloud Analysis
+3. Snyk Security Scan
+4. Packer Image Build
+5. Terraform Destroy (existing resources)
+6. Terraform Apply (new deployment)
 
-### Application not accessible
-1. Check firewall rules: `gcloud compute firewall-rules list`
-2. Verify instance is running: `gcloud compute instances list`
-3. Check Tomcat status: `gcloud compute ssh INSTANCE_NAME --command "sudo systemctl status tomcat9"`
+### 2. Build and Test
+**Trigger**: Manual  
+**Purpose**: Quick validation without deployment
 
-### Build fails
-1. Ensure Java 11 is installed: `java -version`
-2. Verify Maven is working: `mvn -version`
-3. Check for port conflicts
+### 3. Destroy GCP Infrastructure
+**Trigger**: Manual (requires typing "destroy")  
+**Purpose**: Clean up all cloud resources
 
-### Packer build fails
-1. Verify GCP credentials: `gcloud auth list`
-2. Check project ID is correct
-3. Ensure required APIs are enabled
+### 4. PR Checks
+**Trigger**: Manual  
+**Purpose**: Validate pull requests
 
-## 📄 License
+### 5. Cleanup
+**Trigger**: Manual  
+**Purpose**: Delete old Packer images
 
-This project is open source and available under the MIT License.
+## 🗑️ Cleanup
+
+### Destroy All Resources
+1. Go to: https://github.com/gcpt0801/pickstream/actions
+2. Select: "Destroy GCP Infrastructure"
+3. Click: "Run workflow"
+4. Type: `destroy` in confirmation field
+5. Run workflow
+
+This will remove:
+- Compute Instance
+- Static IP Address
+- Firewall Rules
+- VPC Network
+
+**Note**: Packer images are retained. Delete manually if needed:
+```bash
+gcloud compute images list --filter="family:pickstream"
+gcloud compute images delete IMAGE_NAME --project=YOUR_PROJECT_ID
+```
+
+## 📊 Monitoring & Logs
+
+### View Application Logs
+```bash
+gcloud compute ssh pickstream-instance --zone=us-central1-a
+sudo journalctl -u tomcat9 -f
+```
+
+### Check Tomcat Status
+```bash
+sudo systemctl status tomcat9
+```
+
+### View SonarCloud Results
+https://sonarcloud.io/project/overview?id=gcpt0801_pickstream
+
+### View Snyk Results
+https://app.snyk.io
+
+## 🐛 Troubleshooting
+
+### Application Not Accessible
+```bash
+# Check if instance is running
+gcloud compute instances list
+
+# Check firewall rules
+gcloud compute firewall-rules list
+
+# SSH into instance and check Tomcat
+gcloud compute ssh pickstream-instance --zone=us-central1-a
+sudo systemctl status tomcat9
+sudo journalctl -u tomcat9 -n 50
+```
+
+### Tomcat Not Starting
+```bash
+# Check JAVA_HOME
+echo $JAVA_HOME
+
+# Check Tomcat logs
+sudo cat /var/log/tomcat9/catalina.out
+
+# Verify WAR deployment
+ls -la /var/lib/tomcat9/webapps/
+```
+
+### Build Failures
+```bash
+# Verify Java version
+java -version
+
+# Clean Maven cache
+mvn dependency:purge-local-repository
+
+# Rebuild
+mvn clean install -U
+```
 
 ## 🤝 Contributing
 
-Feel free to submit issues and enhancement requests!
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 License
+
+This project is licensed under the MIT License.
+
+## 🔗 Links
+
+- **Repository**: https://github.com/gcpt0801/pickstream
+- **SonarCloud**: https://sonarcloud.io/project/overview?id=gcpt0801_pickstream
+- **GitHub Actions**: https://github.com/gcpt0801/pickstream/actions
+
+## 👤 Author
+
+**gcpt0801**
+- GitHub: [@gcpt0801](https://github.com/gcpt0801)
+
+## 🙏 Acknowledgments
+
+- Java Servlet API
+- Google Cloud Platform
+- HashiCorp (Terraform & Packer)
+- SonarCloud
+- Snyk
+- GitHub Actions
+
+---
+
+**Built with ❤️ using Java, GCP, and Infrastructure as Code**
